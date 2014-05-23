@@ -6,153 +6,190 @@ namespace carlescliment\QueryBuilder;
 class QueryBuilder
 {
 
-    private $em;
-    private $selectClause;
-    private $fromClause;
-    private $joins = array();
-    private $wheres = array();
-    private $orders = array();
-    private $limit;
-    private $offset;
-    private $count;
+	private $em;
+	private $selectClause;
+	private $fromClause;
+	private $joins = array();
+	private $wheres = array();
+	private $havings = array();
+	private $orders = array();
+	private $limit;
+	private $offset;
+	private $count;
 
 
-    public function __construct(Database $em)
-    {
-        $this->em = $em;
-    }
+	public function __construct(Database $em)
+	{
+		$this->em = $em;
+	}
 
 
-    public function select($select_clause)
-    {
-        $this->selectClause = new SelectClause($select_clause);
-        return $this;
-    }
+	public function select($select_clause)
+	{
+		$this->selectClause = new SelectClause($select_clause);
+		return $this;
+	}
 
 
-    public function from($entity, $alias)
-    {
-        $this->fromClause = new FromClause($entity, $alias);
-        return $this;
-    }
+	public function from($entity, $alias)
+	{
+		$this->fromClause = new FromClause($entity, $alias);
+		return $this;
+	}
 
 
-    public function join($entity, $alias, $on, $join_type = 'JOIN')
-    {
-        $this->joins[] = new JoinClause($entity, $alias, $on, $join_type);
-        return $this;
-    }
+	public function join($entity, $alias, $on, $join_type = 'JOIN')
+	{
+		$this->joins[] = new JoinClause($entity, $alias, $on, $join_type);
+		return $this;
+	}
 
-    public function leftJoin($entity, $alias, $on)
-    {
-        return $this->join($entity, $alias, $on, 'LEFT JOIN');
-    }
-
-
-    public function where($entity, $value)
-    {
-
-        $this->wheres[] = WhereClauseFactory::build($entity, $value);
-        return $this;
-    }
+	public function leftJoin($entity, $alias, $on)
+	{
+		return $this->join($entity, $alias, $on, 'LEFT JOIN');
+	}
 
 
-    /** Alias for where */
-    public function andWhere($entity, $value)
-    {
-        return $this->where($entity, $value);
-    }
+	public function where($entity, $value)
+	{
+
+		$this->wheres[] = WhereClauseFactory::build($entity, $value);
+		return $this;
+	}
+
+	public function having($entity, $value)
+	{
+		$this->havings[] = WhereClauseFactory::build($entity, $value);
+		return $this;
+	}
+
+	/**
+	 * @return string
+	 */
+	public function peek() {
+		$oQuery = $this->em->createQuery( $this->buildQueryString() );
+		$this->setQueryParameters( $oQuery );
+		return $oQuery->getQuery();
+	}
+
+	/** Alias for where */
+	public function andWhere($entity, $value)
+	{
+		return $this->where($entity, $value);
+	}
 
 
-    public function orderBy($field, $order = 'DESC')
-    {
-        $this->orders[] = new OrderByClause($field, $order);
-        return $this;
-    }
+	public function orderBy($field, $order = 'ASC')
+	{
+		$this->orders[md5($field)] = new OrderByClause($field, $order);
+		return $this;
+	}
+
+	public function clearOrderBy() {
+		$this->orders = array();
+		return $this;
+	}
+
+	public function limit($limit)
+	{
+		$this->limit = $limit;
+		return $this;
+	}
 
 
-    public function limit($limit)
-    {
-        $this->limit = $limit;
-        return $this;
-    }
+	public function offset($offset)
+	{
+		$this->offset = $offset;
+		return $this;
+	}
 
 
-    public function offset($offset)
-    {
-        $this->offset = $offset;
-        return $this;
-    }
+	public function count( $count_field )
+	{
+		$this->selectClause->count( $count_field );
+		return $this;
+	}
 
 
-    public function count($count_field)
-    {
-        $this->selectClause->count($count_field);
-        return $this;
-    }
+	public function executeIgnoreLimit()
+	{
+		return $this->execute(false);
+	}
 
 
-    public function executeIgnoreLimit()
-    {
-        return $this->execute(false);
-    }
+	public function execute( $applyLimit = true )
+	{
+		$query_str = $this->buildQueryString();
+		$query = $this->em->createQuery($query_str);
+		$this->setQueryParameters($query);
+		if ( $applyLimit ) {
+			$this->applyLimitToQuery($query);
+		}
+		return $this->selectClause->isCount() ? $query->getSingleScalarResult() : $query->getResult();
+	}
+
+	/**
+	 * @return mixed
+	 */
+	public function rowCountNoLimit() {
+		$sQuery = sprintf( 'SELECT COUNT(*) FROM ( %s ) AS `sub_ct`', $this->peek() );
+		$oQuery = $this->em->createQuery( $sQuery );
+		return $oQuery->getSingleScalarResult();
+	}
 
 
-    public function execute($applyLimit = true)
-    {
-        $query_str = $this->buildQueryString();
-        $query = $this->em->createQuery($query_str);
-        $this->setQueryParameters($query);
-        if ($applyLimit) {
-            $this->applyLimitToQuery($query);
-        }
-        return $this->selectClause->isCount() ? $query->getSingleScalarResult() : $query->getResult();
-    }
+	private function applyLimitToQuery($query) {
+		if ($this->limit) {
+			$query->setMaxResults($this->limit);
+		}
+		if ($this->offset) {
+			$query->setFirstResult($this->offset);
+		}
+	}
 
 
-    private function applyLimitToQuery($query) {
-        if ($this->limit) {
-            $query->setMaxResults($this->limit);
-        }
-        if ($this->offset) {
-            $query->setFirstResult($this->offset);
-        }
-    }
+	private function buildQueryString()
+	{
+		$query = "$this->selectClause $this->fromClause";
+		$query .= $this->joinsToString();
+		$query .= $this->wheresToString();
+		$query .= $this->havingsToString();
+		$query .= $this->orderByToString();
+		return $query;
+	}
 
 
-    private function buildQueryString()
-    {
-        $query = "$this->selectClause $this->fromClause";
-        $query .= $this->joinsToString();
-        $query .= $this->wheresToString();
-        $query .= $this->orderByToString();
-        return $query;
-    }
+	private function joinsToString()
+	{
+		return empty($this->joins) ? '' : ' ' . implode(' ', $this->joins);
+	}
 
 
-    private function joinsToString()
-    {
-        return empty($this->joins) ? '' : ' ' . implode(' ', $this->joins);
-    }
+	private function wheresToString()
+	{
+		return empty($this->wheres) ? '' : ' WHERE ' . implode(' AND ', $this->wheres);
+	}
+
+	private function havingsToString()
+	{
+		return empty($this->havings) ? '' : ' HAVING ' . implode(' AND ', $this->havings);
+	}
 
 
-    private function wheresToString()
-    {
-        return empty($this->wheres) ? '' : ' WHERE ' . implode(' AND ', $this->wheres);
-    }
+	private function orderByToString()
+	{
+		return empty($this->orders) ? '' : ' ORDER BY ' . implode(', ', $this->orders);
+	}
 
 
-    private function orderByToString()
-    {
-        return empty($this->orders) ? '' : ' ORDER BY ' . implode(', ', $this->orders);
-    }
-
-
-    private function setQueryParameters($query)
-    {
-        foreach ($this->wheres as $where) {
-            $where->addQueryParameters($query);
-        }
-    }
+	private function setQueryParameters($query)
+	{
+		foreach ($this->wheres as $where) {
+			$where->addQueryParameters($query);
+		}
+		foreach ($this->havings as $having) {
+			$having->addQueryParameters($query);
+		}
+	}
 
 }
