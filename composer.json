@@ -1,10 +1,14 @@
 {
     "name": "carlescliment/query-builder",
-    "version": "v1.0.7",
+    "version": "v1.0.8",
     "authors": [
         {
             "name": "Carles Climent",
             "email": "carlescliment@gmail.com"
+        },
+        {
+            "name": "Stephen O'Flynn",
+            "email": "flynniec6@gmail.com"
         }
     ],
     "require": {
