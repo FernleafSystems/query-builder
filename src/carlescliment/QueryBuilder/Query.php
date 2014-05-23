@@ -24,4 +24,12 @@ abstract class Query
 	public abstract function setFirstResult( $first_result );
 
 	public abstract function getSingleScalarResult();
+
+	/**
+	 * @return string
+	 */
+	public function getQuery() {
+		return (string)$this->query;
+	}
+
 }
