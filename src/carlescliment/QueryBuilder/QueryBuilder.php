@@ -16,6 +16,8 @@ class QueryBuilder
 	private $limit;
 	private $offset;
 	private $count;
+	private $model_filters = array();
+
 
 
 	public function __construct(Database $em)
@@ -191,5 +193,21 @@ class QueryBuilder
 			$having->addQueryParameters($query);
 		}
 	}
+
+	public function getModelFilters() 
+	{
+		return $this->model_filters;
+	}
+
+	public function addModelFilter( $sKey, $sValue ) 
+	{
+		$this->model_filters[$sKey] = array( $sKey, $sValue );
+	}
+
+	public function hasModelFilters() 
+	{
+		return !empty( $this->model_filters );
+	}
+
 
 }
