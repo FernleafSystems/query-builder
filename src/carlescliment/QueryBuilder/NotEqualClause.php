@@ -3,7 +3,7 @@
 namespace carlescliment\QueryBuilder;
 
 
-class GreaterThanWhereClause extends ComparisonWhereClause
+class NotEqualClause extends ComparisonWhereClause
 {
 
   private $strict;
