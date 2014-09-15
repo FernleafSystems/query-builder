@@ -24,7 +24,7 @@ class JoinClause
     }
 
     public function addCondition( $sCondition ) {
-        if ( !in_array( $sCondition, $this->aConditions ) {
+        if ( !in_array( $sCondition, $this->aConditions ) ) {
             $this->aConditions[] = $sCondition;
         }
     }    

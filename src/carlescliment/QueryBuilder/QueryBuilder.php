@@ -53,8 +53,8 @@ class QueryBuilder
 	}
 
 	protected function getTableAliasHash( $sTable, $sAlias ) {
-        return md5( $sTable . '#' . $sAlias );
-    }
+		return md5( $sTable . '#' . $sAlias );
+	}
 
 	public function leftJoin($entity, $alias, $on)
 	{
