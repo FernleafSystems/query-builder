@@ -25,7 +25,6 @@ class QueryBuilder
 		$this->em = $em;
 	}
 
-
 	public function select($select_clause)
 	{
 		$this->selectClause = new SelectClause($select_clause);
@@ -39,11 +38,29 @@ class QueryBuilder
 		return $this;
 	}
 
+	public function getTableName() {
+		return $this->fromClause->getEntityName();
+	}
+
+	public function getTableAlias() {
+		return $this->fromClause->getEntityAlias();
+	}
+
 
 	public function join($entity, $alias, $on, $join_type = 'JOIN')
 	{
-		$this->joins[] = new JoinClause($entity, $alias, $on, $join_type);
+		$sTableHash = $this->getTableAliasHash( $entity, $alias );
+		if ( isset( $this->joins[ $sTableHash ] ) ) {
+			$this->joins[$sTableHash]->addCondition( $on );
+		}
+		else {
+			$this->joins[$sTableHash] = new JoinClause($entity, $alias, $on, $join_type);
+		}
 		return $this;
+	}
+
+	protected function getTableAliasHash( $sTable, $sAlias ) {
+		return md5( $sTable . '#' . $sAlias );
 	}
 
 	public function leftJoin($entity, $alias, $on)
