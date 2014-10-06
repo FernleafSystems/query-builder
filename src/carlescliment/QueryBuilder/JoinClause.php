@@ -8,18 +8,24 @@ class JoinClause
     private $entity;
     private $alias;
     private $type;
-    private $on;
+    private $aConditions;
 
     public function __construct($entity, $alias, $on, $type)
     {
         $this->entity = $entity;
         $this->alias = $alias;
-        $this->on = $on;
+        $this->aConditions[] = $on;
         $this->type = $type;
     }
 
     public function __toString()
     {
-        return $this->type . ' ' . $this->entity . ' ' . $this->alias . ' ON ' . $this->on;
+        return $this->type . ' ' . $this->entity . ' ' . $this->alias . ' ON ' . implode( ' AND ', $this->aConditions );
     }
+
+    public function addCondition( $sCondition ) {
+        if ( !in_array( $sCondition, $this->aConditions ) ) {
+            $this->aConditions[] = $sCondition;
+        }
+    }    
 }

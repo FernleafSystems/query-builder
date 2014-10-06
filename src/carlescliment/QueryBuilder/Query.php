@@ -14,7 +14,7 @@ abstract class Query
 	}
 
 	public function setParameter($key, $value) {
-		$this->query = str_replace(':'.$key, $value, $this->query);
+		$this->query = preg_replace( '#:'.$key . '\b#', $value, $this->query);
 	}
 
 	public abstract function getResult();
