@@ -18,4 +18,18 @@ class FromClause
     {
         return 'FROM ' . $this->entity . ' ' . $this->alias;
     }
+
+	/**
+	 * @return string
+	 */
+	public function getEntityName() {
+		return $this->entity;
+	}
+
+	/**
+	 * @return string
+	 */
+	public function getEntityAlias() {
+		return $this->alias;
+	}
 }
