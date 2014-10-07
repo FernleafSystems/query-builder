@@ -6,17 +6,17 @@ namespace carlescliment\QueryBuilder;
 class QueryBuilder
 {
 
-	private $em;
-	private $selectClause;
-	private $fromClause;
-	private $joins = array();
-	private $wheres = array();
-	private $havings = array();
-	private $orders = array();
-	private $limit;
-	private $offset;
-	private $count;
-	private $model_filters = array();
+	protected $em;
+	protected $selectClause;
+	protected $fromClause;
+	protected $joins = array();
+	protected $wheres = array();
+	protected $havings = array();
+	protected $orders = array();
+	protected $limit;
+	protected $offset;
+	protected $count;
+	protected $model_filters = array();
 
 
 
@@ -157,7 +157,7 @@ class QueryBuilder
 	}
 
 
-	private function applyLimitToQuery($query) {
+	protected function applyLimitToQuery($query) {
 		if ($this->limit) {
 			$query->setMaxResults($this->limit);
 		}
@@ -167,7 +167,7 @@ class QueryBuilder
 	}
 
 
-	private function buildQueryString()
+	protected function buildQueryString()
 	{
 		$query = "$this->selectClause $this->fromClause";
 		$query .= $this->joinsToString();
@@ -178,30 +178,30 @@ class QueryBuilder
 	}
 
 
-	private function joinsToString()
+	protected function joinsToString()
 	{
 		return empty($this->joins) ? '' : ' ' . implode(' ', $this->joins);
 	}
 
 
-	private function wheresToString()
+	protected function wheresToString()
 	{
 		return empty($this->wheres) ? '' : ' WHERE ' . implode(' AND ', $this->wheres);
 	}
 
-	private function havingsToString()
+	protected function havingsToString()
 	{
 		return empty($this->havings) ? '' : ' HAVING ' . implode(' AND ', $this->havings);
 	}
 
 
-	private function orderByToString()
+	protected function orderByToString()
 	{
 		return empty($this->orders) ? '' : ' ORDER BY ' . implode(', ', $this->orders);
 	}
 
 
-	private function setQueryParameters($query)
+	protected function setQueryParameters($query)
 	{
 		foreach ($this->wheres as $where) {
 			$where->addQueryParameters($query);
