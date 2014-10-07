@@ -38,15 +38,6 @@ class QueryBuilder
 		return $this;
 	}
 
-	public function getTableName() {
-		return $this->fromClause->getEntityName();
-	}
-
-	public function getTableAlias() {
-		return $this->fromClause->getEntityAlias();
-	}
-
-
 	public function join($entity, $alias, $on, $join_type = 'JOIN')
 	{
 		$sTableHash = $this->getTableAliasHash( $entity, $alias );
