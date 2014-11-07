@@ -10,13 +10,13 @@ class FromClause
 
     public function __construct($entity, $alias)
     {
-        $this->entity = $entity;
+        $this->entity = trim( $entity, '`' );
         $this->alias = $alias;
     }
 
     public function __toString()
     {
-        return 'FROM ' . $this->entity . ' ' . $this->alias;
+        return 'FROM `' . $this->entity . '` ' . $this->alias;
     }
 
 	/**
