@@ -6,8 +6,19 @@ namespace carlescliment\QueryBuilder;
 class WhereClauseFactory
 {
 
-	public static function build($entity, $value)
+	public static function build($entity, $value = '' )
 	{
+
+		if ( !is_array( $entity ) ) {
+			return self::buildSingleWhere( $entity, $value );
+		}
+		else {
+			$aConditions = $entity;
+			return self::buidMultipleWhere( $aConditions );
+		}
+	}
+
+	protected static function buildSingleWhere( $entity, $value ) {
 		if (preg_match('/in\((.*)\)/', $value, $matches)) {
 			$values = explode(',', $matches[1]);
 			return new InWhereClause($entity, $values);
@@ -39,5 +50,9 @@ class WhereClauseFactory
 			return new GreaterThanWhereClause($entity, $matches[1], false);
 		}
 		return new WhereClause($entity, $value);
+	}
+
+	protected static function buidMultipleWhere( array $aConditions ) {
+		return new WhereAnyClause( $aConditions );
 	}
 }

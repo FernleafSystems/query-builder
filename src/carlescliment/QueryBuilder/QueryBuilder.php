@@ -59,6 +59,10 @@ class QueryBuilder
 		return $this->join($entity, $alias, $on, 'LEFT JOIN');
 	}
 
+	public function whereAny( array $aParameters ) {
+		$this->wheres[] = WhereClauseFactory::build( $aParameters );
+		return $this;
+	}
 
 	public function where($entity, $value)
 	{

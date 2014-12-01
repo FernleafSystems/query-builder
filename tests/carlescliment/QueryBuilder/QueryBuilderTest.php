@@ -66,6 +66,28 @@ class QueryBuilderTest extends \PHPUnit_Framework_TestCase
             ->execute();
     }
 
+	/**
+	 * @test
+	 */
+	public function itAllowsFilteringByMultipleExternalParameter()
+	{
+		// Arrange
+		$expected_query = 'SELECT f.* FROM format f JOIN customer c ON f.customer_id=c.id WHERE (customer_uid=:customer_uid or customer_name=":customer_name")';
+
+		// Expect
+		$this->om->expects($this->once())
+			->method('createQuery')
+			->with($expected_query)
+			->will($this->returnValue($this->queryObject));
+
+		// Act
+		$this->builder->select('f.*')
+			->from('format', 'f')
+			->join('customer', 'c', 'f.customer_id=c.id')
+			->whereAny( array( 'customer_uid' => 4, 'customer_name' => 'John' ) )
+			->execute();
+	}
+
 
     /**
      * @test
