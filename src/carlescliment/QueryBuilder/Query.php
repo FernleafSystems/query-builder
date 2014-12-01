@@ -14,7 +14,12 @@ abstract class Query
 	}
 
 	public function setParameter($key, $value) {
-		$this->query = preg_replace( '#:'.$key . '\b#', $value, $this->query);
+		$bOneWord = true;
+		if ( str_word_count( $key ) > 0 ) {
+			$bOneWord = false;
+		}
+
+		$this->query = preg_replace( sprintf( '#:%s%s#', preg_quote( $key, '#' ), ( $bOneWord ) ? '\b' : ''), $value, $this->query);
 	}
 
 	public abstract function getResult();
