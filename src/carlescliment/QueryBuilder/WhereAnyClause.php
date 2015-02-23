@@ -9,15 +9,18 @@ class WhereAnyClause
 
     public function __construct(array $aConditions)
     {
-        $this->aConditions = $aConditions;
+		$this->aConditions = array();
+		foreach ( $aConditions as $sEntity => $value ) {
+			$this->aConditions[] = WhereClauseFactory::build( $sEntity, $value );
+		}
     }
 
     public function __toString()
     {
 		$sQuery = '(';
 		$i = 0;
-		foreach ( $this->aConditions as $sEntity => $value ) {
-			$sQuery .= sprintf( '%s=%s', $sEntity, $this->buildQueryValue( $sEntity, $value ) );
+		foreach ( $this->aConditions as $oWhere ) {
+			$sQuery .= (string) $oWhere;
 
 			if ( $i++ != count( $this->aConditions ) - 1 ) {
 				$sQuery .= ' or ';
@@ -29,12 +32,8 @@ class WhereAnyClause
 
     public function addQueryParameters($query)
     {
-		foreach( $this->aConditions as $sEntity => $value ) {
-			$query->setParameter( $sEntity, $value );
+		foreach( $this->aConditions as $oWhere ) {
+			$oWhere->addQueryParameters( $query );
 		}
     }
-
-	protected function buildQueryValue( $sEntity, $value ) {
-		return is_numeric( $value ) ? ":$sEntity" : sprintf( '":%s"', $sEntity );
-	}
 }
