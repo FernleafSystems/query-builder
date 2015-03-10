@@ -49,6 +49,9 @@ class WhereClauseFactory
 		if (preg_match('/geqt\((.*)\)/', $value, $matches)) {
 			return new GreaterThanWhereClause($entity, $matches[1], false);
 		}
+		if ( strpos( '/is_null/', $value ) ) {
+			return new NullWhereClause( $entity );
+		}
 		return new WhereClause($entity, $value);
 	}
 
